@@ -1,0 +1,164 @@
+---
+const technologies = [
+  "React",
+  "Angular",
+  "Vue.js",
+  "Node.js",
+  "TypeScript",
+  "Astro",
+  "TailwindCSS",
+  "SpringBoot",
+  "Laravel",
+  "PHP",
+  "MySQL",
+  "PostgreSQL",
+  "Docker",
+  "MongoDB",
+];
+---
+
+<div
+  class="mb-12 mx-auto flex flex-col gap-10 pt-8 px-4 text-center mix-blend-difference relative w-full max-w-xs sm:max-w-md md:max-w-xl lg:max-w-4xl"
+>
+  <h3
+    class="text-xl md:text-2xl w-full font-bold mb-6 font-michroma mix-blend-difference text-white"
+  >
+    Technologies I Work With
+  </h3>
+  <div class="glide relative overflow-hidden mx-auto w-full">
+    <div class="glide__track" data-glide-el="track">
+      <ul class="glide__slides flex justify-center md:justify-start">
+        {
+          technologies.map((tech) => (
+            <li class="glide__slide shrink-0 flex justify-center">
+              <div class="flex justify-center items-center flex-col">
+                <h4 class="font-header text-base md:text-xl underline mix-blend-difference text-white whitespace-nowrap">
+                  {tech}
+                </h4>
+              </div>
+            </li>
+          ))
+        }
+        <!-- Duplicated slides for seamless infinite loop -->
+        {
+          technologies.map((tech) => (
+            <li class="glide__slide shrink-0 flex justify-center">
+              <div class="flex justify-center items-center flex-col">
+                <h4 class="font-header text-base md:text-xl underline mix-blend-difference text-white whitespace-nowrap">
+                  {tech}
+                </h4>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  import Glide from "@glidejs/glide";
+
+  const glide = new Glide(".glide", {
+    type: "carousel",
+    startAt: 0,
+    perView: 3,
+    gap: 20,
+    autoplay: false,
+    animationDuration: 0,
+    animationTimingFunc: "linear",
+    hoverpause: true,
+    breakpoints: {
+      1024: {
+        perView: 2,
+      },
+      600: {
+        perView: 1,
+      },
+    },
+  }).mount();
+
+  // Infinite smooth scroll logic
+  const glideTrack = document.querySelector(".glide__track") as HTMLElement;
+  const glideSlides = document.querySelector(".glide__slides") as HTMLElement;
+
+  if (glideTrack && glideSlides) {
+    const speed = 1; // pixels per frame
+    let position = 0;
+    let isPaused = false;
+
+    // Calculate width of one set of slides (first 3 slides)
+    const slides = glideSlides.querySelectorAll(".glide__slide");
+    let singleSetWidth = 0;
+
+    // Wait for slides to be rendered
+    requestAnimationFrame(() => {
+      for (let i = 0; i < slides.length / 2; i++) {
+        const slide = slides[i] as HTMLElement;
+        singleSetWidth += slide.offsetWidth + 20; // 20 is the gap
+      }
+
+      const animate = () => {
+        if (!isPaused) {
+          position -= speed;
+
+          // Reset seamlessly when we've scrolled one full set
+          if (Math.abs(position) >= singleSetWidth) {
+            position = 0;
+          }
+
+          glideSlides.style.transform = `translateX(${position}px)`;
+        }
+
+        requestAnimationFrame(animate);
+      };
+
+      animate();
+    });
+
+    glideTrack.addEventListener("mouseenter", () => {
+      isPaused = true;
+    });
+
+    glideTrack.addEventListener("mouseleave", () => {
+      isPaused = false;
+    });
+  }
+
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Wait for DOM and Glide to be ready
+  const slides = document.querySelectorAll(".glide__slide");
+
+  gsap.from(slides, {
+    y: 100,
+    opacity: 0,
+    duration: 1,
+    ease: "power2.out",
+    stagger: 0.1,
+    scrollTrigger: {
+      trigger: ".glide",
+      start: "top 80%",
+      end: "top 30%",
+      scrub: 1,
+      toggleActions: "play none none reverse",
+    },
+  });
+
+  gsap.from("h3", {
+    y: 50,
+    opacity: 0,
+    duration: 1,
+    ease: "power2.out",
+    scrollTrigger: {
+      trigger: ".glide",
+      start: "top 90%",
+      end: "top 40%",
+      scrub: 1,
+      toggleActions: "play none none reverse",
+    },
+  });
+</script>

@@ -39,14 +39,14 @@ const experiences = [
 
   <br />
 
-  <div class="flex flex-col gap-12 md:gap-20 w-full max-w-4xl md:-ms-64">
+  <div class="flex flex-col gap-12 md:gap-20 w-full max-w-4xl md:-ms-64 pb-10">
     {
       experiences.map((exp) => (
         <div class="flex flex-col md:flex-row md:items-center gap-6 md:gap-16">
           <img
             alt={`${exp.company} Logo`}
             src={exp.image}
-            class="-skew-6 shadow-2xl aspect-video w-[300px] object-cover h-full "
+            class="-skew-6 shadow-2xl aspect-video w-[300px] mx-auto object-cover h-full "
           />
           <div class="px-2.5">
             <h3 class="text-xl md:text-2xl font-semibold font-michroma mix-blend-difference text-white">
