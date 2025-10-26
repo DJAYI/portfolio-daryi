@@ -1,0 +1,73 @@
+---
+const experiences = [
+  {
+    title: "Software Developer Intern",
+    company: "Technological University Foundation Comfenalco",
+    period: "01/10/2025 – Present",
+    description:
+      "Actively participated in the analysis, design, and development of software solutions to improve the educational quality of the institution. In this role, I focused on developing a web solution with an internationalization (i18n) approach, which optimized efficiency in mobility and event processes, standing out for my commitment and proactivity.",
+    technologies: [
+      "Laravel",
+      "React",
+      "TailwindCSS",
+      "Apache",
+      "Git",
+      "GitLab",
+    ],
+    image:
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.1.0&auto=format&fit=crop&q=80&w=1170",
+  },
+  {
+    title: "Software Developer Intern",
+    company: "Government of Bolívar",
+    period: "08/03/2021 – 11/17/2021",
+    description:
+      "Supported the IT Department at the Government of Bolívar, applying development methodologies and analysis for the design and implementation of software solutions. I was responsible for evaluating and developing requirements, standing out for my responsibility and collaboration.",
+    technologies: ["PHP", "MySQL", "JavaScript", "HTML", "CSS"],
+    image:
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.1.0&auto=format&fit=crop&q=80&w=1170",
+  },
+];
+---
+
+<main class="flex flex-col gap-10 items-center w-full mt-24">
+  <h2
+    class="text-4xl md:text-6xl font-bold underline font-header max-w-lg w-full text-center py-4 px-4 text-pretty relative mix-blend-difference text-white"
+  >
+    Experience
+  </h2>
+
+  <br />
+
+  <div class="flex flex-col gap-12 md:gap-20 w-full max-w-4xl md:-ms-56">
+    {
+      experiences.map((exp) => (
+        <div class="flex flex-col md:flex-row md:items-center gap-6 md:gap-16">
+          <img
+            src={exp.image}
+            alt={`${exp.company} Logo`}
+            class="w-full md:w-56 shadow-2xl aspect-video object-cover rounded md:scale-110 md:-skew-6"
+          />
+          <div class="px-2.5">
+            <h3 class="text-xl md:text-2xl font-semibold font-michroma mix-blend-difference text-white">
+              {exp.title}
+            </h3>
+            <p class="text-sm md:text-base text-neutral-400 font-semibold mix-blend-difference">
+              {exp.company} | {exp.period}
+            </p>
+            <p class="mt-2 text-sm md:text-base text-neutral-300 mix-blend-difference">
+              {exp.description}
+            </p>
+            <div class="flex flex-wrap gap-2 mt-3">
+              {exp.technologies.map((tech) => (
+                <span class="px-2 md:px-3 py-1 text-xs md:text-sm bg-neutral-800 text-white rounded-full">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</main>

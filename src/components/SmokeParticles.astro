@@ -1,0 +1,88 @@
+<div class="fixed top-0 -z-10 w-full h-full overflow-x-hidden" id="bkg"></div>
+
+<script>
+  import * as THREE from "three";
+
+  const $ = (selector: String) => document.querySelector(selector.toString());
+  const $$ = (selector: String) =>
+    document.querySelectorAll(selector.toString());
+
+  const bkg = document.getElementById("bkg");
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(75, w / h, 10, 600);
+  camera.position.z = 100;
+  scene.add(camera);
+
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(w, h);
+
+  renderer.setClearColor(0x000000, 0);
+  bkg?.appendChild(renderer.domElement);
+
+  const light = new THREE.DirectionalLight(0xf2f2f2, 0.5);
+  light.position.set(-1, 3, 1);
+  light.castShadow = true;
+  scene.add(light);
+
+  const Particles: any = [];
+
+  new THREE.TextureLoader().load(
+    "images/particles/Particles.png",
+    (texture) => {
+      const geometry = new THREE.PlaneGeometry(300, 400);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.03,
+        color: 0x000000,
+      });
+
+      const number_of_particles = 50;
+      for (let i = 0; i < number_of_particles; i++) {
+        const particle = new THREE.Mesh(geometry, material);
+        particle.position.x = Math.random() * 800 - 400;
+        particle.position.z = Math.random() * 800 - 400;
+
+        Particles.push(particle);
+        scene.add(particle);
+      }
+    }
+  );
+
+  const animate = () => {
+    requestAnimationFrame(animate);
+    Particles.forEach((particle: any) => {
+      particle.rotation.z += 0.0008;
+      particle.position.y += 0.05;
+    });
+
+    renderer.render(scene, camera);
+  };
+
+  const resize = () => {
+    requestAnimationFrame(resize);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    renderer.setSize(w, h);
+  };
+
+  resize();
+  window.addEventListener("resize", resize);
+
+  animate();
+</script>
+
+<style>
+  canvas {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+  }
+</style>
