@@ -196,179 +196,107 @@ const { title, description } = Astro.props;
   }
 </style>
 
-<script>
-  import { gsap } from "gsap";
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
-  import { PixiPlugin } from "gsap/all";
-  import Lenis from "lenis";
+<script>import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
 
-  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-  const ctx = canvas.getContext("2d")!;
+gsap.registerPlugin(ScrollTrigger);
 
-  canvas.width = 600;
-  canvas.height = 1067;
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const ctx = canvas.getContext("2d")!;
+const IMAGE_COUNT = 160;
+const images: HTMLImageElement[] = [];
+let imagesLoaded = 0;
 
-  const images: HTMLImageElement[] = [];
-  const IMAGE_COUNT = 160;
-
+// 1. Precarga optimizada
+function preloadImages() {
   for (let i = 1; i <= IMAGE_COUNT; i++) {
     const img = new Image();
-
-    img.src = `/images/danilo-360-turn/ezgif-frame-${String(i).padStart(
-      3,
-      "0"
-    )}.jpg`;
-    img.style.filter = "brightness(1.1)";
-    img.style.mixBlendMode = "multiply";
+    img.onload = () => {
+      imagesLoaded++;
+      if (imagesLoaded === 1) renderFrame(0); // Renderiza la primera cuanto antes
+    };
+    img.src = `/images/danilo-360-turn/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
     images.push(img);
   }
+}
 
-  function renderFrame(index: number) {
-    if (!images[index] || !images[index].complete) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(images[index], 0, 0, canvas.width, canvas.height);
-  }
+function renderFrame(index: number) {
+  const img = images[index];
+  if (!img || !img.complete) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+}
 
-  // const lenis = new Lenis();
+// 2. Inicialización de Lenis
+const lenis = new Lenis({
+  duration: 1.2,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+});
 
-  // lenis.on("scroll", ScrollTrigger.update);
+lenis.on("scroll", ScrollTrigger.update);
+gsap.ticker.add((time) => {
+  lenis.raf(time * 1000);
+});
+gsap.ticker.lagSmoothing(0);
 
-  // gsap.ticker.add((time) => {
-    // lenis.raf(time * 1000);
-  // });
+// 3. Lógica de Animación Principal
+function initAnimations() {
+  // Limpiar triggers previos para evitar duplicados
+  ScrollTrigger.getAll().forEach(t => t.kill());
 
-  gsap.registerPlugin(ScrollTrigger);
-  gsap.ticker.lagSmoothing(0);
-  gsap.registerPlugin(PixiPlugin);
+  const isDesktop = window.innerWidth >= 768;
 
-  ScrollTrigger.refresh();
-
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: "#container",
-      start: "top top",
-      end: "50%",
-      scrub: true,
-      invalidateOnRefresh: true,
-    },
-  });
-
-  // Solo aplicar animaciones complejas en desktop
-  const mediaQuery = window.matchMedia("(min-width: 768px)");
-
-  if (mediaQuery.matches) {
-    tl.to(
-      { frame: 1 },
-      {
-        frame: IMAGE_COUNT - 1,
-        ease: "easeInOut",
-
-        onUpdate: function () {
-          renderFrame(Math.floor(this.targets()[0].frame));
-          canvas.style.opacity = "1";
-        },
-      }
-    )
-      .to(
-        canvas,
-        {
-          x: `+=${window.innerWidth / 1.5}`,
-          scale: 1.2,
-          ease: "easeInOut",
-        },
-        "<"
-      )
-      .to(
-        "#blob",
-        {
-          scale: 0.8,
-          y: -350,
-          ease: "none",
-        },
-        "<"
-      );
-  } else {
-    // Animación de expansión del blob en mobile/tablet
-    gsap.to("#blob", {
-      scale: 10,
-      y: 200,
-      x: "+=100",
-      rotation: 180,
-      ease: "none",
+  if (isDesktop) {
+    const tl = gsap.timeline({
       scrollTrigger: {
         trigger: "#container",
         start: "top top",
-        end: "bottom center",
-        scrub: 1.5,
+        end: "+=100%", // Usa valores relativos más estables
+        scrub: 0.5,
+        pin: true, // Importante para secuencias de imágenes
         invalidateOnRefresh: true,
       },
     });
-  }
 
-  ScrollTrigger.refresh();
-
-  const st = tl.scrollTrigger;
-
-  function setInitialFrame() {
-    const progress = st?.progress ?? 0;
-    const idx = Math.floor(progress * (IMAGE_COUNT - 1));
-    if (images[idx] && images[idx].complete) {
-      renderFrame(idx);
-      canvas.style.opacity = "1";
-    } else if (images[0] && images[0].complete) {
-      renderFrame(0);
-      canvas.style.opacity = "1";
-    }
-  }
-
-  setInitialFrame();
-
-  images.forEach((img, i) => {
-    img.addEventListener("load", () => {
-      const progress = st?.progress ?? 0;
-      const targetIdx = Math.floor(progress * (IMAGE_COUNT - 1));
-      if (i === targetIdx) {
-        renderFrame(i);
-        canvas.style.opacity = "1";
+    tl.to({ frame: 0 }, {
+      frame: IMAGE_COUNT - 1,
+      snap: "frame",
+      ease: "none", // El scrub ya da la suavidad, "none" es mejor para frames
+      onUpdate: function() {
+        renderFrame(Math.floor(this.targets()[0].frame));
       }
+    })
+    .to(canvas, { x: 200, scale: 1.2 }, 0)
+    .to("#blob", { scale: 0.8, y: -350 }, 0);
+
+  } else {
+    // Mobile: Animación simplificada
+    gsap.to("#blob", {
+      scale: 5, // Reducido de 10 para evitar problemas de pintura (repaint)
+      y: 100,
+      rotation: 180,
+      scrollTrigger: {
+        trigger: "#container",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 1,
+      },
     });
-  });
-
-  // Detect overlap between canvas and svg and toggle an invert filter on the canvas
-  const svgEl = document.querySelector("h1") as SVGElement | null;
-
-  function rectsOverlap(a: DOMRect, b: DOMRect) {
-    return !(
-      b.right < a.left ||
-      b.left > a.right ||
-      b.bottom < a.top ||
-      b.top > a.bottom
-    );
   }
+}
 
-  function checkCanvasSvgOverlap() {
-    // Solo verificar overlap en desktop donde el canvas es visible
-    if (!svgEl || !mediaQuery.matches) return;
-    const a = canvas.getBoundingClientRect();
-    const b = svgEl.getBoundingClientRect();
-    if (rectsOverlap(a, b)) {
-      canvas.classList.add("invert-filter");
-      svgEl.classList.add("highlighted");
-    } else {
-      canvas.classList.remove("invert-filter");
-      svgEl.classList.remove("highlighted");
-    }
-  }
-
-  if (mediaQuery.matches) {
-    checkCanvasSvgOverlap();
-    window.addEventListener("resize", checkCanvasSvgOverlap);
-    gsap.ticker.add(checkCanvasSvgOverlap);
-  }
-
-  // Limpiar y reconfigurar en cambio de viewport
-  mediaQuery.addEventListener("change", () => {
-    ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+// 4. Manejo de Resize (Debounced)
+let resizeTimeout: any;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    initAnimations();
     ScrollTrigger.refresh();
-  });
+  }, 250);
+});
+
+// Inicializar
+preloadImages();
+initAnimations();
 </script>
