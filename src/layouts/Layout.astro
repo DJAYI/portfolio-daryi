@@ -229,13 +229,13 @@ const { title, description } = Astro.props;
     ctx.drawImage(images[index], 0, 0, canvas.width, canvas.height);
   }
 
-  const lenis = new Lenis();
+  // const lenis = new Lenis();
 
-  lenis.on("scroll", ScrollTrigger.update);
+  // lenis.on("scroll", ScrollTrigger.update);
 
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
+  // gsap.ticker.add((time) => {
+    // lenis.raf(time * 1000);
+  // });
 
   gsap.registerPlugin(ScrollTrigger);
   gsap.ticker.lagSmoothing(0);
