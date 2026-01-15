@@ -194,109 +194,208 @@ const { title, description } = Astro.props;
       max-width: 300px !important;
     }
   }
+
+  #blob {
+    will-change: transform;
+  }
 </style>
 
-<script>import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { PixiPlugin } from "gsap/all";
+  import Lenis from "lenis";
 
-gsap.registerPlugin(ScrollTrigger);
+  // !!! Definimos el mediaQuery al principio para usarlo en la lógica de carga
+  const mediaQuery = window.matchMedia("(min-width: 768px)");
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const ctx = canvas.getContext("2d")!;
-const IMAGE_COUNT = 160;
-const images: HTMLImageElement[] = [];
-let imagesLoaded = 0;
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
-// 1. Precarga optimizada
-function preloadImages() {
-  for (let i = 1; i <= IMAGE_COUNT; i++) {
-    const img = new Image();
-    img.onload = () => {
-      imagesLoaded++;
-      if (imagesLoaded === 1) renderFrame(0); // Renderiza la primera cuanto antes
-    };
-    img.src = `/images/danilo-360-turn/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
-    images.push(img);
+  canvas.width = 600;
+  canvas.height = 1067;
+
+  // Optimización: Aplicar estilos al canvas, no a las imágenes fuente (ahorra CPU)
+  canvas.style.filter = "brightness(1.1)";
+  canvas.style.mixBlendMode = "multiply";
+
+  const images = [];
+  const IMAGE_COUNT = 160;
+
+  // !!! SOLUCIÓN CRÍTICA: Solo cargar las 160 imágenes si es Desktop
+  if (mediaQuery.matches) {
+    for (let i = 1; i <= IMAGE_COUNT; i++) {
+      const img = new Image();
+      // Preload priority low para no bloquear el render inicial
+      img.src = `/images/danilo-360-turn/ezgif-frame-${String(i).padStart(3, "0")}.jpg`;
+      images.push(img);
+    }
   }
-}
 
-function renderFrame(index: number) {
-  const img = images[index];
-  if (!img || !img.complete) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-}
+  function renderFrame(index) {
+    // Protección extra por si el array está vacío en mobile
+    if (!images[index] || !images[index].complete) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(images[index], 0, 0, canvas.width, canvas.height);
+  }
 
-// 2. Inicialización de Lenis
-const lenis = new Lenis({
-  duration: 1.2,
-  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-});
+  // Configuración de Lenis
+  const lenis = new Lenis({
+    // Puedes ajustar esto para mobile si se siente muy "resbaladizo"
+    lerp: 0.1, 
+    smoothTouch: true, // Habilitar suavizado en touch devices (opcional)
+  });
 
-lenis.on("scroll", ScrollTrigger.update);
-gsap.ticker.add((time) => {
-  lenis.raf(time * 1000);
-});
-gsap.ticker.lagSmoothing(0);
+  lenis.on("scroll", ScrollTrigger.update);
 
-// 3. Lógica de Animación Principal
-function initAnimations() {
-  // Limpiar triggers previos para evitar duplicados
-  ScrollTrigger.getAll().forEach(t => t.kill());
+  gsap.ticker.add((time) => {
+    lenis.raf(time * 1000);
+  });
 
-  const isDesktop = window.innerWidth >= 768;
+  gsap.registerPlugin(ScrollTrigger);
+  // !!! LagSmoothing 0 puede ser agresivo en móviles cargados. 
+  // Mejor dejar un pequeño margen o desactivarlo solo en desktop.
+  gsap.ticker.lagSmoothing(0); 
+  
+  // PixiPlugin parece no usarse aquí (usas Canvas 2D nativo), se podría quitar si no lo usas.
+  // gsap.registerPlugin(PixiPlugin); 
 
-  if (isDesktop) {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: "#container",
-        start: "top top",
-        end: "+=100%", // Usa valores relativos más estables
-        scrub: 0.5,
-        pin: true, // Importante para secuencias de imágenes
-        invalidateOnRefresh: true,
-      },
-    });
+  ScrollTrigger.refresh();
 
-    tl.to({ frame: 0 }, {
-      frame: IMAGE_COUNT - 1,
-      snap: "frame",
-      ease: "none", // El scrub ya da la suavidad, "none" es mejor para frames
-      onUpdate: function() {
-        renderFrame(Math.floor(this.targets()[0].frame));
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: "#container",
+      start: "top top",
+      end: mediaQuery.matches ? "50%" : "bottom center", // Ajuste dinámico del final
+      scrub: true,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  if (mediaQuery.matches) {
+    // --- LÓGICA DESKTOP ---
+    
+    // 1. Animación de Frames (Solo desktop)
+    tl.to(
+      { frame: 1 },
+      {
+        frame: IMAGE_COUNT - 1,
+        ease: "none", // easeInOut en frames puede verse raro, 'none' es más lineal al scroll
+        onUpdate: function () {
+          renderFrame(Math.floor(this.targets()[0].frame));
+          canvas.style.opacity = "1";
+        },
       }
-    })
-    .to(canvas, { x: 200, scale: 1.2 }, 0)
-    .to("#blob", { scale: 0.8, y: -350 }, 0);
+    )
+    .to(canvas, {
+        x: `+=${window.innerWidth / 1.5}`,
+        scale: 1.2,
+        ease: "easeInOut",
+      }, "<")
+    .to("#blob", {
+        scale: 0.8,
+        y: -350,
+        ease: "none",
+      }, "<");
 
   } else {
-    // Mobile: Animación simplificada
-    gsap.to("#blob", {
-      scale: 5, // Reducido de 10 para evitar problemas de pintura (repaint)
-      y: 100,
+    // --- LÓGICA MOBILE ---
+    
+    // En mobile NO animamos el canvas, solo el blob
+    // Usamos 'will-change' via CSS o set en JS para ayudar al GPU
+    gsap.set("#blob", { willChange: "transform" });
+    
+    tl.to("#blob", {
+      scale: 10, // Cuidado: Scale 10 puede pixelar o causar carga de GPU alta
+      y: 200,
+      x: "+=100",
       rotation: 180,
-      scrollTrigger: {
-        trigger: "#container",
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 1,
-      },
+      ease: "none",
+    });
+    
+    // Ocultar canvas en mobile para asegurar que no pinte nada
+    canvas.style.display = 'none';
+  }
+
+  ScrollTrigger.refresh();
+
+  // --- Helpers y Eventos ---
+
+  const st = tl.scrollTrigger;
+
+  function setInitialFrame() {
+    // Solo ejecutar en desktop
+    if (!mediaQuery.matches) return;
+
+    const progress = st?.progress ?? 0;
+    const idx = Math.floor(progress * (IMAGE_COUNT - 1));
+    if (images[idx] && images[idx].complete) {
+      renderFrame(idx);
+      canvas.style.opacity = "1";
+    } else if (images[0] && images[0].complete) {
+      renderFrame(0);
+      canvas.style.opacity = "1";
+    }
+  }
+
+  setInitialFrame();
+
+  // Event Listeners para carga de imágenes (Solo Desktop)
+  if (mediaQuery.matches) {
+    images.forEach((img, i) => {
+      img.addEventListener("load", () => {
+        const progress = st?.progress ?? 0;
+        const targetIdx = Math.floor(progress * (IMAGE_COUNT - 1));
+        if (i === targetIdx) {
+          renderFrame(i);
+          canvas.style.opacity = "1";
+        }
+      });
     });
   }
-}
 
-// 4. Manejo de Resize (Debounced)
-let resizeTimeout: any;
-window.addEventListener("resize", () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    initAnimations();
+  // --- Overlap Detection (Solo Desktop) ---
+  const svgEl = document.querySelector("h1");
+
+  function rectsOverlap(a, b) {
+    return !(
+      b.right < a.left ||
+      b.left > a.right ||
+      b.bottom < a.top ||
+      b.top > a.bottom
+    );
+  }
+
+  function checkCanvasSvgOverlap() {
+    if (!svgEl || !mediaQuery.matches) return;
+    
+    // Optimización: getBoundingClientRect es costoso. 
+    // Considera ejecutar esto con throttle si notas lentitud, 
+    // aunque en desktop moderno suele ir bien.
+    const a = canvas.getBoundingClientRect();
+    const b = svgEl.getBoundingClientRect();
+    
+    if (rectsOverlap(a, b)) {
+      canvas.classList.add("invert-filter");
+      svgEl.classList.add("highlighted");
+    } else {
+      canvas.classList.remove("invert-filter");
+      svgEl.classList.remove("highlighted");
+    }
+  }
+
+  if (mediaQuery.matches) {
+    checkCanvasSvgOverlap();
+    window.addEventListener("resize", checkCanvasSvgOverlap);
+    gsap.ticker.add(checkCanvasSvgOverlap);
+  }
+
+  // Limpieza al cambiar viewport
+  mediaQuery.addEventListener("change", () => {
+    // Recargar página completa suele ser más seguro para cambios drásticos de layout (canvas vs no canvas)
+    // window.location.reload(); 
+    // O limpiar manualmente:
+    ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     ScrollTrigger.refresh();
-  }, 250);
-});
-
-// Inicializar
-preloadImages();
-initAnimations();
+  });
 </script>
