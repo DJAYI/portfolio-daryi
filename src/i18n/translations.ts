@@ -67,7 +67,7 @@ const en: Translations = {
         title: "Experience",
         items: [
             {
-                title: "Software Developer Intern",
+                title: "Software Developer",
                 company: "Technological University Foundation Comfenalco",
                 period: "01/10/2025 – Present",
                 description:
@@ -84,7 +84,7 @@ const en: Translations = {
                     "https://hablalonoticias.com/wp-content/uploads/2021/12/E47CF9D3-655D-4C82-ABF2-4820C44BC96D.jpeg",
             },
             {
-                title: "Software Developer Intern",
+                title: "Software Developer",
                 company: "Government of Bolívar",
                 period: "08/03/2021 – 11/17/2021",
                 description:
@@ -204,7 +204,7 @@ const es: Translations = {
         title: "Experiencia",
         items: [
             {
-                title: "Desarrollador de Software — Pasante",
+                title: "Desarrollador de Software",
                 company: "Fundación Universitaria Tecnológico Comfenalco",
                 period: "01/10/2025 – Presente",
                 description:
@@ -221,7 +221,7 @@ const es: Translations = {
                     "https://hablalonoticias.com/wp-content/uploads/2021/12/E47CF9D3-655D-4C82-ABF2-4820C44BC96D.jpeg",
             },
             {
-                title: "Desarrollador de Software — Pasante",
+                title: "Desarrollador de Software",
                 company: "Gobernación de Bolívar",
                 period: "08/03/2021 – 11/17/2021",
                 description:
