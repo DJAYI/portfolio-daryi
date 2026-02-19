@@ -1,0 +1,1 @@
+import{g as o}from"./index.DKtf60Sy.js";import{S as t}from"./ScrollTrigger.BWsqEc1I.js";o.registerPlugin(t);const e=document.querySelectorAll(".project-card");e.forEach((r,i)=>{o.fromTo(r,{y:60,opacity:0},{y:0,opacity:1,duration:1.2,ease:"power3.out",scrollTrigger:{trigger:r,start:"top 90%",end:"top 60%",scrub:.8}})});

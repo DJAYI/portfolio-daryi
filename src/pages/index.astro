@@ -1,8 +1,188 @@
 ---
-import Layout from "../layouts/Layout.astro";
+// Página selector de idioma — punto de entrada principal
+import "../styles/global.css";
 ---
 
-<Layout
-  title="Portfolio of DJAYI"
-  description="Fullstack Developer Portfolio of Danilo Arenas Yi - Showcasing projects, skills, and experience in web development."
-/>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DJAYI — Portfolio</title>
+    <meta
+      name="description"
+      content="Fullstack Developer Portfolio of Danilo Arenas Yi"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=Michroma&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="m-0 p-0 overflow-hidden">
+    <div
+      id="lang-selector"
+      class="fixed inset-0 z-50 flex overflow-hidden"
+      style="visibility: hidden;"
+    >
+      <!-- EN side -->
+      <button
+        id="en-side"
+        class="lang-side h-full bg-neutral-100 flex items-center justify-center cursor-pointer border-none outline-none overflow-hidden"
+        style="width: 50%;"
+        data-lang="en"
+      >
+        <div class="text-center pointer-events-none select-none">
+          <span
+            class="font-header text-7xl md:text-[10rem] text-neutral-900 block lang-text leading-none"
+          >
+            En
+          </span>
+          <p
+            class="font-michroma text-sm md:text-lg text-neutral-500 mt-4 md:mt-6 lang-sub"
+          >
+            English
+          </p>
+        </div>
+      </button>
+
+      <!-- ES side -->
+      <button
+        id="es-side"
+        class="lang-side h-full bg-neutral-900 flex items-center justify-center cursor-pointer border-none outline-none overflow-hidden"
+        style="width: 50%;"
+        data-lang="es"
+      >
+        <div class="text-center pointer-events-none select-none">
+          <span
+            class="font-header text-7xl md:text-[10rem] text-neutral-100 block lang-text leading-none"
+          >
+            Es
+          </span>
+          <p
+            class="font-michroma text-sm md:text-lg text-neutral-400 mt-4 md:mt-6 lang-sub"
+          >
+            Español
+          </p>
+        </div>
+      </button>
+    </div>
+
+    <script>
+      import { gsap } from "gsap";
+
+      const selector = document.getElementById("lang-selector")!;
+      const enSide = document.getElementById("en-side")!;
+      const esSide = document.getElementById("es-side")!;
+
+      // Auto-redirect si ya eligió idioma antes
+      const saved = localStorage.getItem("portfolio-lang");
+      if (saved === "en" || saved === "es") {
+        window.location.replace(`/${saved}/`);
+      } else {
+        // Mostrar selector con animación de entrada
+        selector.style.visibility = "visible";
+
+        gsap.from(".lang-text", {
+          y: 60,
+          opacity: 0,
+          duration: 1.2,
+          ease: "power3.out",
+          stagger: 0.2,
+          delay: 0.1,
+        });
+
+        gsap.from(".lang-sub", {
+          y: 30,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          stagger: 0.2,
+          delay: 0.5,
+        });
+      }
+
+      let isAnimating = false;
+
+      function selectLanguage(lang: string) {
+        if (isAnimating) return;
+        isAnimating = true;
+        localStorage.setItem("portfolio-lang", lang);
+
+        const chosen = lang === "en" ? enSide : esSide;
+        const other = lang === "en" ? esSide : enSide;
+        const chosenText = chosen.querySelector(".lang-text")!;
+        const chosenSub = chosen.querySelector(".lang-sub")!;
+
+        const tl = gsap.timeline({
+          onComplete: () => {
+            window.location.href = `/${lang}/`;
+          },
+        });
+
+        tl.to(other, {
+          width: "0%",
+          duration: 0.8,
+          ease: "power3.inOut",
+        })
+          .to(
+            chosen,
+            {
+              width: "100%",
+              duration: 0.8,
+              ease: "power3.inOut",
+            },
+            "<",
+          )
+          .to(
+            chosenText,
+            {
+              scale: 1.4,
+              duration: 0.8,
+              ease: "power3.inOut",
+            },
+            "<",
+          )
+          .to(
+            chosenSub,
+            {
+              opacity: 0,
+              y: -20,
+              duration: 0.4,
+              ease: "power2.in",
+            },
+            "<",
+          )
+          .to(chosen, {
+            opacity: 0,
+            duration: 0.5,
+            ease: "power2.in",
+          });
+      }
+
+      enSide.addEventListener("click", () => selectLanguage("en"));
+      esSide.addEventListener("click", () => selectLanguage("es"));
+
+      // Hover: expansión sutil
+      enSide.addEventListener("mouseenter", () => {
+        if (isAnimating) return;
+        gsap.to(enSide, { width: "55%", duration: 0.5, ease: "power2.out" });
+        gsap.to(esSide, { width: "45%", duration: 0.5, ease: "power2.out" });
+      });
+
+      esSide.addEventListener("mouseenter", () => {
+        if (isAnimating) return;
+        gsap.to(esSide, { width: "55%", duration: 0.5, ease: "power2.out" });
+        gsap.to(enSide, { width: "45%", duration: 0.5, ease: "power2.out" });
+      });
+
+      selector.addEventListener("mouseleave", () => {
+        if (isAnimating) return;
+        gsap.to(enSide, { width: "50%", duration: 0.5, ease: "power2.out" });
+        gsap.to(esSide, { width: "50%", duration: 0.5, ease: "power2.out" });
+      });
+    </script>
+  </body>
+</html>

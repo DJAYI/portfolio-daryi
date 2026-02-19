@@ -2,20 +2,25 @@
 import Carousel from "../components/Carousel.astro";
 import Experience from "../components/Experience.astro";
 import Footer from "../components/Footer.astro";
+import Projects from "../components/Projects.astro";
 import Header from "../components/Header.astro";
 import SmokeParticles from "../components/SmokeParticles.astro";
+import { getTranslations, type Lang } from "../i18n/translations";
 import "../styles/global.css";
 
 interface Props {
   title: string;
   description: string;
+  lang: Lang;
 }
 
-const { title, description } = Astro.props;
+const { title, description, lang } = Astro.props;
+const t = getTranslations(lang);
+const otherLang = lang === "en" ? "es" : "en";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
@@ -26,7 +31,24 @@ const { title, description } = Astro.props;
       content="Danilo Arenas Yi, Fullstack Developer, Software Engineer, Web Development, React, Laravel, JavaScript, Portfolio"
     />
     <meta name="robots" content="index, follow" />
-    <meta name="language" content="English" />
+    <meta name="language" content={lang === "en" ? "English" : "Spanish"} />
+
+    <!-- Hreflang -->
+    <link
+      rel="alternate"
+      hreflang="en"
+      href="https://portfolio-daryi.vercel.app/en/"
+    />
+    <link
+      rel="alternate"
+      hreflang="es"
+      href="https://portfolio-daryi.vercel.app/es/"
+    />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://portfolio-daryi.vercel.app/"
+    />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -58,7 +80,10 @@ const { title, description } = Astro.props;
     />
 
     <!-- Additional SEO -->
-    <link rel="canonical" href="https://portfolio-daryi.vercel.app/" />
+    <link
+      rel="canonical"
+      href={`https://portfolio-daryi.vercel.app/${lang}/`}
+    />
     <meta name="theme-color" content="#f5f5f5" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -117,11 +142,29 @@ const { title, description } = Astro.props;
     <title>{title}</title>
   </head>
   <body class="bg-neutral-100 max-w-screen overflow-x-hidden">
+    <!-- Overlay de transición — se elimina solo, no afecta stacking context del body -->
+    <div
+      id="page-fade"
+      class="fixed inset-0 z-[100] bg-neutral-100 pointer-events-none"
+      style="opacity: 1;"
+    >
+    </div>
+
+    <!-- Botón de cambio de idioma -->
+    <a
+      id="lang-toggle"
+      href={t.langToggle.switchTo}
+      class="fixed top-4 right-4 z-40 font-header text-sm mix-blend-difference text-white px-3 py-1.5 border border-white/30 rounded-full hover:bg-white hover:text-neutral-900 transition-colors duration-300"
+      data-other-lang={otherLang}
+    >
+      {t.langToggle.label}
+    </a>
+
     <div
       class="flex flex-col w-full min-h-screen py-4 items-center justify-center px-3.5"
       id="container"
     >
-      <Header />
+      <Header lang={lang} />
       <canvas id="canvas" class="-z-10"></canvas>
       <svg
         id="blob"
@@ -137,11 +180,12 @@ const { title, description } = Astro.props;
           fill-opacity="1"></path>
       </svg>
       <div class="absolute -bottom-20">
-        <Carousel />
+        <Carousel lang={lang} />
       </div>
     </div>
-    <div class="relative h-screen w-full pb-4 md:mt-60 px-2.5">
-      <Experience />
+    <div class="relative w-full pb-4 md:mt-60 px-2.5">
+      <Experience lang={lang} />
+      <Projects lang={lang} />
       <Footer />
     </div>
 
@@ -242,7 +286,7 @@ const { title, description } = Astro.props;
   // Configuración de Lenis
   const lenis = new Lenis({
     // Puedes ajustar esto para mobile si se siente muy "resbaladizo"
-    lerp: 0.1, 
+    lerp: 0.1,
     smoothTouch: true, // Habilitar suavizado en touch devices (opcional)
   });
 
@@ -253,12 +297,12 @@ const { title, description } = Astro.props;
   });
 
   gsap.registerPlugin(ScrollTrigger);
-  // !!! LagSmoothing 0 puede ser agresivo en móviles cargados. 
+  // !!! LagSmoothing 0 puede ser agresivo en móviles cargados.
   // Mejor dejar un pequeño margen o desactivarlo solo en desktop.
-  gsap.ticker.lagSmoothing(0); 
-  
+  gsap.ticker.lagSmoothing(0);
+
   // PixiPlugin parece no usarse aquí (usas Canvas 2D nativo), se podría quitar si no lo usas.
-  // gsap.registerPlugin(PixiPlugin); 
+  // gsap.registerPlugin(PixiPlugin);
 
   ScrollTrigger.refresh();
 
@@ -274,7 +318,7 @@ const { title, description } = Astro.props;
 
   if (mediaQuery.matches) {
     // --- LÓGICA DESKTOP ---
-    
+
     // 1. Animación de Frames (Solo desktop)
     tl.to(
       { frame: 1 },
@@ -285,26 +329,33 @@ const { title, description } = Astro.props;
           renderFrame(Math.floor(this.targets()[0].frame));
           canvas.style.opacity = "1";
         },
-      }
+      },
     )
-    .to(canvas, {
-        x: `+=${window.innerWidth / 1.5}`,
-        scale: 1.2,
-        ease: "easeInOut",
-      }, "<")
-    .to("#blob", {
-        scale: 0.8,
-        y: -350,
-        ease: "none",
-      }, "<");
-
+      .to(
+        canvas,
+        {
+          x: `+=${window.innerWidth / 1.5}`,
+          scale: 1.2,
+          ease: "easeInOut",
+        },
+        "<",
+      )
+      .to(
+        "#blob",
+        {
+          scale: 0.8,
+          y: -350,
+          ease: "none",
+        },
+        "<",
+      );
   } else {
     // --- LÓGICA MOBILE ---
-    
+
     // En mobile NO animamos el canvas, solo el blob
     // Usamos 'will-change' via CSS o set en JS para ayudar al GPU
     gsap.set("#blob", { willChange: "transform" });
-    
+
     tl.to("#blob", {
       scale: 10, // Cuidado: Scale 10 puede pixelar o causar carga de GPU alta
       y: 200,
@@ -312,9 +363,9 @@ const { title, description } = Astro.props;
       rotation: 180,
       ease: "none",
     });
-    
+
     // Ocultar canvas en mobile para asegurar que no pinte nada
-    canvas.style.display = 'none';
+    canvas.style.display = "none";
   }
 
   ScrollTrigger.refresh();
@@ -368,13 +419,13 @@ const { title, description } = Astro.props;
 
   function checkCanvasSvgOverlap() {
     if (!svgEl || !mediaQuery.matches) return;
-    
-    // Optimización: getBoundingClientRect es costoso. 
-    // Considera ejecutar esto con throttle si notas lentitud, 
+
+    // Optimización: getBoundingClientRect es costoso.
+    // Considera ejecutar esto con throttle si notas lentitud,
     // aunque en desktop moderno suele ir bien.
     const a = canvas.getBoundingClientRect();
     const b = svgEl.getBoundingClientRect();
-    
+
     if (rectsOverlap(a, b)) {
       canvas.classList.add("invert-filter");
       svgEl.classList.add("highlighted");
@@ -393,9 +444,31 @@ const { title, description } = Astro.props;
   // Limpieza al cambiar viewport
   mediaQuery.addEventListener("change", () => {
     // Recargar página completa suele ser más seguro para cambios drásticos de layout (canvas vs no canvas)
-    // window.location.reload(); 
+    // window.location.reload();
     // O limpiar manualmente:
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     ScrollTrigger.refresh();
   });
+
+  // Guardar preferencia de idioma al hacer click en el toggle
+  const langToggle = document.getElementById("lang-toggle");
+  if (langToggle) {
+    langToggle.addEventListener("click", () => {
+      const otherLang = langToggle.getAttribute("data-other-lang");
+      if (otherLang) {
+        localStorage.setItem("portfolio-lang", otherLang);
+      }
+    });
+  }
+
+  // Fade out del overlay de entrada (no afecta stacking context del body)
+  const pageFade = document.getElementById("page-fade");
+  if (pageFade) {
+    gsap.to(pageFade, {
+      opacity: 0,
+      duration: 0.7,
+      ease: "power2.out",
+      onComplete: () => pageFade.remove(),
+    });
+  }
 </script>

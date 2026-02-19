@@ -1,40 +1,20 @@
 ---
-const experiences = [
-  {
-    title: "Software Developer Intern",
-    company: "Technological University Foundation Comfenalco",
-    period: "01/10/2025 – Present",
-    description:
-      "Actively participated in the analysis, design, and development of software solutions to improve the educational quality of the institution. In this role, I focused on developing a web solution with an internationalization (i18n) approach, which optimized efficiency in mobility and event processes, standing out for my commitment and proactivity.",
-    technologies: [
-      "Laravel",
-      "React",
-      "TailwindCSS",
-      "Apache",
-      "Git",
-      "GitLab",
-    ],
-    image:
-      "https://hablalonoticias.com/wp-content/uploads/2021/12/E47CF9D3-655D-4C82-ABF2-4820C44BC96D.jpeg",
-  },
-  {
-    title: "Software Developer Intern",
-    company: "Government of Bolívar",
-    period: "08/03/2021 – 11/17/2021",
-    description:
-      "Supported the IT Department at the Government of Bolívar, applying development methodologies and analysis for the design and implementation of software solutions. I was responsible for evaluating and developing requirements, standing out for my responsibility and collaboration.",
-    technologies: ["PHP", "MySQL", "JavaScript", "HTML", "CSS"],
-    image:
-      "https://funcicar.org/wp-content/uploads/2024/01/gobernacion-de-bolivar_8540216_20230921081326.jpg",
-  },
-];
+import { getTranslations, type Lang } from "../i18n/translations";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = getTranslations(lang);
+const experiences = t.experience.items;
 ---
 
 <main class="flex flex-col gap-10 items-center w-full mt-24">
   <h2
     class="text-4xl md:text-6xl font-bold underline font-header max-w-lg w-full text-center py-4 px-4 text-pretty relative mix-blend-difference text-white"
   >
-    Experience
+    {t.experience.title}
   </h2>
 
   <br />

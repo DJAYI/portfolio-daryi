@@ -1,4 +1,13 @@
 ---
+import { getTranslations, type Lang } from "../i18n/translations";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = getTranslations(lang);
+
 const technologies = [
   "TypeScript",
   "PHP",
@@ -33,7 +42,7 @@ const technologies = [
   <h3
     class="text-xl md:text-3xl w-full font-bold mb-6 font-michroma mix-blend-difference text-white"
   >
-    Technologies I Work With
+    {t.carousel.title}
   </h3>
   <div class="glide relative overflow-hidden mx-auto w-full">
     <div class="glide__track" data-glide-el="track">
