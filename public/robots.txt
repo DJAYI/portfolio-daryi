@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://portfolio-daryi.vercel.app/sitemap-index.xml
+
+# Reglas específicas
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Bloquear recursos innecesarios para crawlers
+Disallow: /google9cbdf30b6258200b.html

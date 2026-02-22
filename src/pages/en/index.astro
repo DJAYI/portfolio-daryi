@@ -2,7 +2,8 @@
 import Layout from "../../layouts/Layout.astro";
 import { getTranslations } from "../../i18n/translations";
 
-const t = getTranslations("en");
+const lang = Astro.currentLocale ?? "en";
+const t = getTranslations(lang);
 ---
 
-<Layout title={t.meta.title} description={t.meta.description} lang="en" />
+<Layout title={t.meta.title} description={t.meta.description} lang={lang} />

@@ -22,6 +22,7 @@ export interface Translations {
     meta: {
         title: string;
         description: string;
+        keywords: string;
     };
     header: {
         name: string;
@@ -49,9 +50,11 @@ export interface Translations {
 
 const en: Translations = {
     meta: {
-        title: "Portfolio of DJAYI",
+        title: "Danilo Arenas Yi — Fullstack Developer Portfolio",
         description:
-            "Fullstack Developer Portfolio of Danilo Arenas Yi - Showcasing projects, skills, and experience in web development.",
+            "Portfolio of Danilo Arenas Yi (DJAYI), Fullstack Developer specializing in React, Laravel, TypeScript and modern web technologies. Explore projects, skills and professional experience.",
+        keywords:
+            "Danilo Arenas Yi, DJAYI, Fullstack Developer, Software Engineer, Web Developer, React, Laravel, TypeScript, JavaScript, PHP, Node.js, Portfolio, Colombia, Cartagena",
     },
     header: {
         name: "Danilo Arenas Yi",
@@ -186,9 +189,11 @@ const en: Translations = {
 
 const es: Translations = {
     meta: {
-        title: "Portafolio de DJAYI",
+        title: "Danilo Arenas Yi — Portafolio de Desarrollador Fullstack",
         description:
-            "Portafolio de Desarrollador Fullstack de Danilo Arenas Yi - Proyectos, habilidades y experiencia en desarrollo web.",
+            "Portafolio de Danilo Arenas Yi (DJAYI), Desarrollador Fullstack especializado en React, Laravel, TypeScript y tecnologías web modernas. Explora proyectos, habilidades y experiencia profesional.",
+        keywords:
+            "Danilo Arenas Yi, DJAYI, Desarrollador Fullstack, Ingeniero de Software, Desarrollador Web, React, Laravel, TypeScript, JavaScript, PHP, Node.js, Portafolio, Colombia, Cartagena",
     },
     header: {
         name: "Danilo Arenas Yi",
@@ -323,12 +328,11 @@ const es: Translations = {
 
 const translations: Record<Lang, Translations> = { en, es };
 
-export function getTranslations(lang: Lang): Translations {
-    return translations[lang] ?? translations.en;
-}
-
-export function getLangFromUrl(url: URL): Lang {
-    const segments = url.pathname.split("/");
-    if (segments[1] === "es") return "es";
-    return "en";
+/**
+ * Obtiene las traducciones para un idioma dado.
+ * Compatible con Astro.currentLocale — pasar el locale directamente.
+ */
+export function getTranslations(lang: string | undefined): Translations {
+    const validLang = (lang === "en" || lang === "es") ? lang : "es";
+    return translations[validLang];
 }

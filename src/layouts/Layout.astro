@@ -6,130 +6,160 @@ import Projects from "../components/Projects.astro";
 import Header from "../components/Header.astro";
 import SmokeParticles from "../components/SmokeParticles.astro";
 import { getTranslations, type Lang } from "../i18n/translations";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import "../styles/global.css";
 
 interface Props {
   title: string;
   description: string;
-  lang: Lang;
+  lang: string;
 }
 
 const { title, description, lang } = Astro.props;
 const t = getTranslations(lang);
-const otherLang = lang === "en" ? "es" : "en";
+const otherLang: Lang = lang === "en" ? "es" : "en";
+
+const SITE_URL = "https://portfolio-daryi.vercel.app";
+const canonicalUrl = `${SITE_URL}${getRelativeLocaleUrl(lang as Lang, "/")}`;
+const enUrl = `${SITE_URL}${getRelativeLocaleUrl("en", "/")}`;
+const esUrl = `${SITE_URL}${getRelativeLocaleUrl("es", "/")}`;
+const ogLocale = lang === "en" ? "en_US" : "es_CO";
+const ogLocaleAlt = lang === "en" ? "es_CO" : "en_US";
 ---
 
 <!doctype html>
 <html lang={lang}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="author" content="Danilo Arenas Yi" />
-    <meta
-      name="keywords"
-      content="Danilo Arenas Yi, Fullstack Developer, Software Engineer, Web Development, React, Laravel, JavaScript, Portfolio"
-    />
-    <meta name="robots" content="index, follow" />
-    <meta name="language" content={lang === "en" ? "English" : "Spanish"} />
 
-    <!-- Hreflang -->
-    <link
-      rel="alternate"
-      hreflang="en"
-      href="https://portfolio-daryi.vercel.app/en/"
-    />
-    <link
-      rel="alternate"
-      hreflang="es"
-      href="https://portfolio-daryi.vercel.app/es/"
-    />
-    <link
-      rel="alternate"
-      hreflang="x-default"
-      href="https://portfolio-daryi.vercel.app/"
-    />
+    <!-- SEO primario -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={t.meta.keywords} />
+    <meta name="author" content="Danilo Arenas Yi" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="language" content={lang === "en" ? "English" : "Spanish"} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Canonical & Hreflang (SEO multiidioma) -->
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="es" href={esUrl} />
+    <link rel="alternate" hreflang="x-default" href={`${SITE_URL}/`} />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://portfolio-daryi.vercel.app/" />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta
-      property="og:image"
-      content="https://portfolio-daryi.vercel.app/og-image.jpg"
-    />
-    <meta property="og:site_name" content="Danilo Arenas Yi - Portfolio" />
+    <meta property="og:image" content={`${SITE_URL}/og-image.jpg`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Danilo Arenas Yi — Fullstack Developer" />
+    <meta property="og:site_name" content="Danilo Arenas Yi — Portfolio" />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:locale:alternate" content={ogLocaleAlt} />
 
-    <!-- Twitter -->
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://portfolio-daryi.vercel.app/" />
+    <meta name="twitter:url" content={canonicalUrl} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${SITE_URL}/og-image.jpg`} />
+    <meta name="twitter:image:alt" content="Danilo Arenas Yi — Fullstack Developer" />
 
-
-
-    <!-- Additional SEO -->
-    <link
-      rel="canonical"
-      href={`https://portfolio-daryi.vercel.app/${lang}/`}
-    />
+    <!-- Tema y favicon -->
     <meta name="theme-color" content="#f5f5f5" />
-
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg" />
+
+    <!-- Preconnect a recursos externos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fuentes (carga optimizada con display=swap) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=Michroma&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Lenis smooth scroll -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/lenis@1.1.7/dist/lenis.css"
     />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Michroma&display=swap"
-      rel="stylesheet"
-    />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&display=swap"
-      rel="stylesheet"
-    />
-
-    <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
+    <!-- Structured Data — Person (JSON-LD) -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      "mainEntity": {
         "@type": "Person",
         "name": "Danilo Arenas Yi",
-        "jobTitle": "Fullstack Developer",
-        "url": "https://portfolio-daryi.vercel.app/",
+        "alternateName": "DJAYI",
+        "jobTitle": lang === "en" ? "Fullstack Developer" : "Desarrollador Fullstack",
+        "description": description,
+        "url": SITE_URL,
+        "image": `${SITE_URL}/og-image.jpg`,
         "sameAs": [
           "https://www.linkedin.com/in/daryi/",
           "https://github.com/DJAYI"
         ],
         "knowsAbout": [
-          "Web Development",
-          "React",
-          "Laravel",
-          "JavaScript",
-          "TailwindCSS",
-          "PHP",
-          "MySQL"
+          "TypeScript", "JavaScript", "PHP", "Java", "React", "Angular", "Vue.js",
+          "Laravel", "Node.js", "Spring Boot", "TailwindCSS", "Astro",
+          "MySQL", "PostgreSQL", "MongoDB", "Docker", "Git"
         ],
+        "knowsLanguage": ["es", "en"],
         "alumniOf": {
           "@type": "EducationalOrganization",
-          "name": "Technological University Foundation Comfenalco"
+          "name": "Fundación Universitaria Tecnológico Comfenalco"
         },
         "worksFor": {
           "@type": "Organization",
-          "name": "Technological University Foundation Comfenalco"
+          "name": "Fundación Universitaria Tecnológico Comfenalco"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "CO",
+          "addressLocality": "Cartagena"
         }
       }
-    </script>
+    })} />
 
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <!-- Structured Data — WebSite (JSON-LD) -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Danilo Arenas Yi — Portfolio",
+      "url": SITE_URL,
+      "inLanguage": [lang],
+      "author": {
+        "@type": "Person",
+        "name": "Danilo Arenas Yi"
+      }
+    })} />
+
+    <!-- Structured Data — BreadcrumbList (JSON-LD) -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": SITE_URL
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": lang === "en" ? "English" : "Español",
+          "item": canonicalUrl
+        }
+      ]
+    })} />
   </head>
   <body class="bg-neutral-100 max-w-screen overflow-x-hidden">
     <!-- Overlay de transición — se elimina solo, no afecta stacking context del body -->
@@ -143,9 +173,10 @@ const otherLang = lang === "en" ? "es" : "en";
     <!-- Botón de cambio de idioma -->
     <a
       id="lang-toggle"
-      href={t.langToggle.switchTo}
+      href={getRelativeLocaleUrl(otherLang, "/")}
       class="fixed top-4 right-4 z-40 font-header text-sm mix-blend-difference text-white px-3 py-1.5 border border-white/30 rounded-full hover:bg-white hover:text-neutral-900 transition-colors duration-300"
       data-other-lang={otherLang}
+      aria-label={lang === "en" ? "Cambiar a Español" : "Switch to English"}
     >
       {t.langToggle.label}
     </a>
