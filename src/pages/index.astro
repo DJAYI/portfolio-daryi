@@ -1,14 +1,8 @@
 ---
-// Página selector de idioma — punto de entrada principal
-// Server-rendered para detectar Accept-Language del navegador
-export const prerender = false;
-
+// Página selector de idioma — punto de entrada principal (estática)
 import "../styles/global.css";
 
 const SITE_URL = "https://portfolio-daryi.vercel.app";
-
-// Detectar idioma preferido del navegador vía Accept-Language (server-side)
-const preferredLocale = Astro.preferredLocale;
 ---
 
 <!doctype html>
@@ -79,9 +73,6 @@ const preferredLocale = Astro.preferredLocale;
     <meta name="generator" content={Astro.generator} />
   </head>
   <body class="m-0 p-0 overflow-hidden">
-    <!-- Hint del idioma preferido detectado en el servidor -->
-    <input type="hidden" id="preferred-locale" value={preferredLocale ?? ""} />
-
     <div
       id="lang-selector"
       class="fixed inset-0 z-50 flex overflow-hidden"
@@ -142,13 +133,11 @@ const preferredLocale = Astro.preferredLocale;
       if (saved === "en" || saved === "es") {
         window.location.replace(`/${saved}/`);
       } else {
-        // Usar hint del servidor (Accept-Language) para posible redirección automática
-        const preferredEl = document.getElementById("preferred-locale") as HTMLInputElement;
-        const preferred = preferredEl?.value;
+        // Detectar idioma preferido del navegador (client-side)
+        const browserLang = navigator.language?.slice(0, 2);
+        const preferred = browserLang === "es" ? "es" : browserLang === "en" ? "en" : null;
 
-        // Si tenemos preferencia del servidor, redirigir automáticamente
-        // (solo si no ha visitado antes — localStorage vacío)
-        if (preferred === "en" || preferred === "es") {
+        if (preferred) {
           localStorage.setItem("portfolio-lang", preferred);
           window.location.replace(`/${preferred}/`);
         } else {
